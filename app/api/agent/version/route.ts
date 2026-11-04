@@ -88,28 +88,45 @@ export async function GET(req: Request) {
       { headers, next: { revalidate: 60 } } as RequestInit
     );
 
-    if (ghRes.ok) {
-      const releases: GhRelease[] = await ghRes.json();
-      // Find first release with the exe asset — tags are agent-v*
-      const rel =
-        releases.find((r) => r.assets.some((a) => a.name === "GamepointAgent.exe")) ||
-        releases[0] ||
-        null;
-
-      if (rel) {
-        tag = rel.tag_name;
-        // Strip agent-v prefix for pure version
-        version = rel.tag_name.replace(/^agent-v/, "").replace(/^v/, "");
-        publishedAt = rel.published_at;
-        const exe = rel.assets.find((a) => a.name === "GamepointAgent.exe");
-        if (exe) {
-          downloadUrl = exe.browser_download_url;
-          size = typeof exe.size === "number" ? exe.size : size;
-          sha256 = parseSha256Digest(exe.digest ?? null) ?? sha256;
+      if (ghRes.ok) {
+        const releases: GhRelease[] = await ghRes.json();
+        // Find the release with the highest version that has the exe asset.
+        const withExe = releases.filter((r) =>
+          r.assets.some((a) => a.name === "GamepointAgent.exe")
+        );
+        let rel: GhRelease | undefined;
+        if (withExe.length > 0) {
+          withExe.sort((a, b) => {
+            const va = parseVersion(a.tag_name.replace(/^agent-v/, "").replace(/^v/, ""));
+            const vb = parseVersion(b.tag_name.replace(/^agent-v/, "").replace(/^v/, ""));
+            for (let i = 0; i < Math.max(va.length, vb.length); i++) {
+              const av = va[i] ?? 0;
+              const bv = vb[i] ?? 0;
+              if (av > bv) return -1;
+              if (av < bv) return 1;
+            }
+            return 0;
+          });
+          rel = withExe[0];
+        } else if (releases.length > 0) {
+          // Fallback: newest release even without exe asset
+          rel = releases[0];
         }
-        // Keep tag for display even if asset missing
-      }
-    } else {
+
+        if (rel) {
+          tag = rel.tag_name;
+          // Strip agent-v prefix for pure version
+          version = rel.tag_name.replace(/^agent-v/, "").replace(/^v/, "");
+          publishedAt = rel.published_at;
+          const exe = rel.assets.find((a) => a.name === "GamepointAgent.exe");
+          if (exe) {
+            downloadUrl = exe.browser_download_url;
+            size = typeof exe.size === "number" ? exe.size : size;
+            sha256 = parseSha256Digest(exe.digest ?? null) ?? sha256;
+          }
+          // Keep tag for display even if asset missing
+        }
+      } else {
       // Fallback: try /releases/latest if list fails (e.g. private repo 404 without token)
       console.warn(`[agent/version] GitHub releases list ${ghRes.status}: ${await ghRes.text()}`);
     }
