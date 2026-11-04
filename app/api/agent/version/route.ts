@@ -17,7 +17,7 @@
  *  2. Falls back to env AGENT_VERSION / AGENT_DOWNLOAD_URL if GitHub is unreachable
  */
 
-const GITHUB_REPO = process.env.GITHUB_REPO || "markclarus1990/gamepoint";
+const GITHUB_REPO = process.env.GITHUB_REPO || "laurettemaeclarus/gamepoint";
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN || process.env.GH_TOKEN || "";
 
 function parseVersion(v: string): number[] {
