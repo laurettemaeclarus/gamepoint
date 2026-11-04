@@ -114,10 +114,11 @@ internal sealed class Updater
                     if (!info.UpdateAvailable && IsNewer(info.Version, current) && !string.IsNullOrEmpty(info.DownloadUrl))
                         info.UpdateAvailable = true;
                     ProgramDbg($"Updater server check: current={current} latest={info.Version} available={info.UpdateAvailable} url={(info.DownloadUrl ?? "none")} size={(info.Size?.ToString() ?? "unknown")} sha256={(ShortSha(info.Sha256) ?? "none")}");
-                    // If server has a download URL and confirms update, return it
-                    if (info.DownloadUrl != null || info.UpdateAvailable)
+                    // Only accept the server's verdict if it's actually newer.
+                    // Otherwise fall through to direct GitHub — a stale server
+                    // response with a DownloadUrl must not block the GitHub check.
+                    if (info.UpdateAvailable || IsNewer(info.Version, current))
                         return info;
-                    // Server has version but no asset — fall through to direct GitHub
                 }
             }
             else
