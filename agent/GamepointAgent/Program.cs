@@ -1360,8 +1360,18 @@ internal static class Program
                 Locked = true,
                 RemainingSeconds = 0,
                 StationName = _cfg.StationName,
-                UserName = ""
+                UserName = "",
+                UserTimeCredit = _current?.UserTimeCredit
             });
+        }
+
+        /// <summary>
+        /// Clear LockForm's cached shared-time/resume state so a logout from
+        /// the widget doesn't leave stale credit displayed on the lock screen.
+        /// </summary>
+        public void ResetLockFormCredit()
+        {
+            _lockForm?.ResetForNewLock();
         }
 
         /// <summary>
@@ -1599,7 +1609,10 @@ try
             }
 
             var mins = Math.Max(1, (int)Math.Ceiling(remainingSeconds / 60.0));
-            _lockForm.ShowPlayerStatus($"{player.Name} — {FmtMinutes(mins)} left • ₱{gfunds} gfunds • {points} pts");
+            var credit = player.TimeCreditMinutes > 0
+                ? $" • {player.TimeCreditMinutes} shared min"
+                : "";
+            _lockForm.ShowPlayerStatus($"{player.Name} — {FmtMinutes(mins)} left • ₱{gfunds} gfunds • {points} pts{credit}");
         }
 
         private int UnlockedPollMs()
@@ -1632,26 +1645,30 @@ try
         /// re-sync with the server. Does NOT set _lockHeldUntil so a timely
         /// Add Time / top-up still unlocks on the next poll.
         /// </summary>
-        private void OnLocalTimeExpired()
+        private async void OnLocalTimeExpired()
         {
             try
             {
                 if (_current is null || _current.Locked) return;
                 if (_current.RemainingSeconds > 0) return;
-                Dbg("Local time expired — locking immediately");
-                EnforceLockNow();
-                ApplyStatus(new Status
+                Dbg("Local time expired — re-syncing with server before locking");
+                // Poll first to get authoritative server state before locking,
+                // so a server-added top-up between polls doesn't get overridden
+                // by local countdown drift.
+                await _controller.PollAsync();
+                if (_current is not null && _current.RemainingSeconds <= 0 && !_current.Locked)
                 {
-                    Locked = true,
-                    RemainingSeconds = 0,
-                    StationName = _cfg.StationName,
-                    UserName = ""
-                });
-                _ = Task.Run(async () =>
-                {
-                    await Task.Delay(300);
-                    await PollAsync();
-                });
+                    Dbg("Local time expired — locking immediately");
+                    EnforceLockNow();
+                    ApplyStatus(new Status
+                    {
+                        Locked = true,
+                        RemainingSeconds = 0,
+                        StationName = _cfg.StationName,
+                        UserName = "",
+                        UserTimeCredit = _current?.UserTimeCredit
+                    });
+                }
             }
             catch { }
         }
@@ -2939,14 +2956,12 @@ try
                 Visible = false
             };
             MakeGradientButton(_btnShareTime, Color.FromArgb(13, 148, 136), Color.FromArgb(5, 150, 105));
-            _btnShareTime.Click += (_, _) =>
+            _btnShareTime.Click += async (_, _) =>
             {
                 if (string.IsNullOrEmpty(_controller.CurrentUserId)) return;
                 using var dlg = new ShareTimeForm(_controller);
-                if (dlg.ShowDialog(this) == DialogResult.OK)
-                {
-                    _ = _controller.PollAsync();
-                }
+                dlg.ShowDialog(this);
+                await _controller.PollAsync();
             };
             _btnChangePin = new Button
             {
@@ -2961,12 +2976,13 @@ try
                 FlatAppearance = { BorderSize = 0 },
                 Visible = false
             };
-            _btnChangePin.Click += (_, _) =>
+            _btnChangePin.Click += async (_, _) =>
             {
                 var userId = _controller.CurrentUserId;
                 if (string.IsNullOrEmpty(userId)) return;
                 using var dlg = new ChangePinForm(_controller.Http, userId);
                 dlg.ShowDialog(this);
+                await _controller.PollAsync();
             };
             _btnMin = new Button
             {
@@ -3210,6 +3226,7 @@ try
                 if (ok)
                 {
                     _controller.LockNow();
+                    _controller.ResetLockFormCredit();
                     await _controller.ShowPlayerStatusAsync(remaining);
                 }
                 else
