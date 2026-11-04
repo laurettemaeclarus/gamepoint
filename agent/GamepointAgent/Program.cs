@@ -1655,7 +1655,7 @@ try
                 // Poll first to get authoritative server state before locking,
                 // so a server-added top-up between polls doesn't get overridden
                 // by local countdown drift.
-                await _controller.PollAsync();
+                await PollAsync();
                 if (_current is not null && _current.RemainingSeconds <= 0 && !_current.Locked)
                 {
                     Dbg("Local time expired — locking immediately");
