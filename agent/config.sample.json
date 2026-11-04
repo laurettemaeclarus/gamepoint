@@ -5,7 +5,7 @@
   "pollSeconds": 10,
   "stationPort": 3987,
   "updateCheckMinutes": 60,
-  "githubRepo": "markclarus1990/gamepoint",
+  "githubRepo": "laurettemaeclarus/gamepoint",
   "githubToken": "",
   "minimizeOnLock": true,
   "killOnExpiry": false,

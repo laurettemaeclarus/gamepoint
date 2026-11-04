@@ -361,7 +361,7 @@ internal static class Program
 
         // Normalize optional fields for old configs
         if (cfg.UpdateCheckMinutes <= 0) cfg.UpdateCheckMinutes = 60;
-        cfg.GithubRepo ??= "markclarus1990/gamepoint";
+        cfg.GithubRepo ??= "laurettemaeclarus/gamepoint";
         if (cfg.LockPollMs < 100 || cfg.LockPollMs > 2000) cfg.LockPollMs = 250;
         if (cfg.ExpiryPrePollSecs < 5 || cfg.ExpiryPrePollSecs > 300) cfg.ExpiryPrePollSecs = 30;
         if (cfg.UnlockPollMs < 1000 || cfg.UnlockPollMs > 10000) cfg.UnlockPollMs = 3000;
@@ -559,7 +559,7 @@ internal static class Program
                 try { LockEnforcement.ReclaimForeground(lf, _cfg.BlockedProcesses); } catch { }
             };
 
-            var repo = string.IsNullOrWhiteSpace(_cfg.GithubRepo) ? "markclarus1990/gamepoint" : _cfg.GithubRepo!;
+            var repo = string.IsNullOrWhiteSpace(_cfg.GithubRepo) ? "laurettemaeclarus/gamepoint" : _cfg.GithubRepo!;
             _updater = new Updater(_http, _cfg.ServerUrl, repo, _cfg.GithubToken);
             var checkMinutes = Math.Max(5, _cfg.UpdateCheckMinutes);
             _updateTimer = new System.Windows.Forms.Timer { Interval = checkMinutes * 60 * 1000 };

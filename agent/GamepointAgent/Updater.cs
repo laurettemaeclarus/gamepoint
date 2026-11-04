@@ -40,7 +40,7 @@ internal sealed class Updater
 
     private readonly HttpClient _http;
     private readonly string _serverUrl;
-    private readonly string? _githubRepo; // e.g. "markclarus1990/gamepoint"
+    private readonly string? _githubRepo; // e.g. "laurettemaeclarus/gamepoint"
     private readonly string? _githubToken;
 
     public Updater(HttpClient http, string serverUrl, string? githubRepo = null, string? githubToken = null)

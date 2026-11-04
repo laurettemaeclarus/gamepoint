@@ -21,7 +21,7 @@ Output: `dist\GamepointAgent.exe` (self-contained, single file — no install ne
    - `serverUrl` — your GAMEPOINT app URL (e.g. `https://gamepoint.example.com`)
    - `agentKey` — the station's agent key (Admin Dashboard → Stations → "Key" button)
    - `stationName` — must match the station name created in the admin dashboard (e.g. `PC-1`)
-   - `githubRepo` — (optional) GitHub repo for direct update fallback, default `markclarus1990/gamepoint`
+   - `githubRepo` — (optional) GitHub repo for direct update fallback, default `laurettemaeclarus/gamepoint`
    - `githubToken` — (only if repo is private) a fine-grained PAT with `contents:read`
    - `updateCheckMinutes` — how often to check for updates (default 60)
 3. Run `install-agent.ps1` (from this folder, with `dist\` populated) to copy the files to `%LOCALAPPDATA%\GamepointAgent` and add a startup shortcut, OR just run `GamepointAgent.exe` once — it auto-starts at every login after step 1 if you put a shortcut in the Startup folder.
@@ -53,7 +53,7 @@ Output: `dist\GamepointAgent.exe` (self-contained, single file — no install ne
 ### Environment for the server (Vercel / .env)
 
 ```env
-GITHUB_REPO=markclarus1990/gamepoint
+GITHUB_REPO=laurettemaeclarus/gamepoint
 GITHUB_TOKEN=ghp_xxx   # only if repo is private; for public repos leave empty
 # Optional overrides if you don't use GitHub Releases:
 AGENT_VERSION=1.0.42
