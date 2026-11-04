@@ -3305,8 +3305,19 @@ try
             {
                 // Server blip returning nulls mid-session must not collapse the
                 // widget to logout-only when we still have a signed-in player.
-                if (!string.IsNullOrEmpty(_controller.CurrentUserId) && _hasUser)
+                if (!string.IsNullOrEmpty(_controller.CurrentUserId))
+                {
+                    // Preserve signed-in UI state despite a null-balance poll.
+                    _hasUser = true;
+                    _balances.Visible = true;
+                    if (!_minimized)
+                    {
+                        _btnAddTime.Visible = true;
+                        _btnShareTime.Visible = true;
+                        _btnChangePin.Visible = true;
+                    }
                     return;
+                }
                 _hasUser = false;
                 _balances.Visible = false;
                 _btnAddTime.Visible = false;
@@ -3328,8 +3339,19 @@ try
 
         public void SetBalances()
         {
-            if (!string.IsNullOrEmpty(_controller.CurrentUserId) && _hasUser)
+            if (!string.IsNullOrEmpty(_controller.CurrentUserId))
+            {
+                // Preserve signed-in UI state despite a null-balance poll.
+                _hasUser = true;
+                _balances.Visible = true;
+                if (!_minimized)
+                {
+                    _btnAddTime.Visible = true;
+                    _btnShareTime.Visible = true;
+                    _btnChangePin.Visible = true;
+                }
                 return;
+            }
             _hasUser = false;
             _balances.Visible = false;
             _btnAddTime.Visible = false;
