@@ -1736,12 +1736,12 @@ try
                     st.UserAvatar ??= prevStatus.UserAvatar;
                     st.UserTimeCredit ??= prevStatus.UserTimeCredit;
                 }
-                else if (!string.IsNullOrEmpty(_controller.CurrentUserId))
+                else if (!string.IsNullOrEmpty(CurrentUserId))
                 {
                     // Signed-in session with no prior status to restore from —
                     // keep the known user id so the widget doesn't collapse to
                     // logout-only on a single null-balance poll.
-                    st.UserId ??= _controller.CurrentUserId;
+                    st.UserId ??= CurrentUserId;
                 }
             }
             _current = st;
