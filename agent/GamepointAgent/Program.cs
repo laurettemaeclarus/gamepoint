@@ -1725,13 +1725,24 @@ try
             // Don't let a balance-less status wipe known balances (UnlockSession
             // posts timer-only updates). Keep previous values so widget buttons
             // don't collapse to logout-only.
-            if (!st.Locked && (st.UserGfunds is null || st.UserPoints is null) && prevStatus is not null && !prevStatus.Locked)
+            if (!st.Locked && (st.UserGfunds is null || st.UserPoints is null))
             {
-                st.UserId ??= prevStatus.UserId;
-                st.UserPoints ??= prevStatus.UserPoints;
-                st.UserGfunds ??= prevStatus.UserGfunds;
-                st.UserAvatar ??= prevStatus.UserAvatar;
-                st.UserTimeCredit ??= prevStatus.UserTimeCredit;
+                var canPreserveBalances = prevStatus is not null && !prevStatus.Locked;
+                if (canPreserveBalances)
+                {
+                    st.UserId ??= prevStatus.UserId;
+                    st.UserPoints ??= prevStatus.UserPoints;
+                    st.UserGfunds ??= prevStatus.UserGfunds;
+                    st.UserAvatar ??= prevStatus.UserAvatar;
+                    st.UserTimeCredit ??= prevStatus.UserTimeCredit;
+                }
+                else if (!string.IsNullOrEmpty(_controller.CurrentUserId))
+                {
+                    // Signed-in session with no prior status to restore from —
+                    // keep the known user id so the widget doesn't collapse to
+                    // logout-only on a single null-balance poll.
+                    st.UserId ??= _controller.CurrentUserId;
+                }
             }
             _current = st;
             var lf = _lockForm;
@@ -3300,6 +3311,8 @@ try
 
         public void SetBalances()
         {
+            if (!string.IsNullOrEmpty(_controller.CurrentUserId) && _hasUser)
+                return;
             _hasUser = false;
             _balances.Visible = false;
             _btnAddTime.Visible = false;
