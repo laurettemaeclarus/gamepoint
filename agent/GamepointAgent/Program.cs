@@ -1329,26 +1329,37 @@ internal static class Program
             // Preserve last known balances: login/resume/start only know the
             // timer, but the widget buttons (Add/Share/Change PIN) are gated on
             // balances. Passing nulls would hide them until the next poll.
+            // On a fresh login (new/cold-start PC) there is no previous unlocked
+            // status, so fall back to the signed-in CurrentPlayer so the widget
+            // shows the Add/Share/Change PIN buttons immediately instead of
+            // collapsing to logout-only.
             var prev = _current;
+            var player = CurrentPlayer;
             ApplyStatus(new Status
             {
                 Locked = false,
                 RemainingSeconds = remainingSeconds,
                 StationName = _cfg.StationName,
                 UserName = userName,
-                UserId = prev?.UserId,
-                UserPoints = prev?.UserPoints,
-                UserGfunds = prev?.UserGfunds,
-                UserAvatar = prev?.UserAvatar,
-                UserTimeCredit = prev?.UserTimeCredit,
+                UserId = prev?.UserId ?? player?.Id,
+                UserPoints = prev?.UserPoints ?? player?.Points,
+                UserGfunds = prev?.UserGfunds ?? player?.Gfunds,
+                UserAvatar = prev?.UserAvatar ?? player?.AvatarUrl,
+                UserTimeCredit = prev?.UserTimeCredit ?? player?.TimeCreditMinutes,
             });
             // Fetch the full status (balances/avatar) ASAP so the widget
-            // restores without a manual reload.
-            _ = Task.Run(async () =>
+            // restores without a manual reload. Must run on the UI thread so
+            // ApplyStatus can touch the widget controls (Task.Run would throw
+            // a cross-thread exception that gets swallowed, leaving buttons
+            // hidden).
+            var pollTimer = new System.Windows.Forms.Timer { Interval = 800 };
+            pollTimer.Tick += async (_, _) =>
             {
-                await Task.Delay(800);
+                pollTimer.Stop();
+                pollTimer.Dispose();
                 try { await PollAsync(); } catch { }
-            });
+            };
+            pollTimer.Start();
         }
 
         public void LockNow()
