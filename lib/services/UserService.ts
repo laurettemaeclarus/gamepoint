@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase";
 import { UserRepository } from "@/lib/repositories/UserRepository";
 import type { User } from "@/types";
 
@@ -18,19 +18,35 @@ export class UserService {
     file: File
   ): Promise<{ url: string } | { error: string }> {
     try {
-      const fileName = `${userId}-${Date.now()}.png`;
+      if (!file || file.size === 0) {
+        return { error: "No file uploaded" };
+      }
+      if (!file.type.startsWith("image/")) {
+        return { error: "File must be an image" };
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        return { error: "Image must be 5MB or smaller" };
+      }
 
-      const { error: uploadError } = await supabase.storage
+      const ext = (file.name.split(".").pop() || "png").toLowerCase();
+      const safeExt = ["png", "jpg", "jpeg", "gif", "webp"].includes(ext)
+        ? ext
+        : "png";
+      const fileName = `${userId}-${Date.now()}.${safeExt}`;
+
+      const client = supabaseAdmin;
+
+      const { error: uploadError } = await client.storage
         .from("avatars")
-        .upload(fileName, file, { upsert: true });
+        .upload(fileName, file, { upsert: true, contentType: file.type });
 
       if (uploadError) {
         return { error: uploadError.message };
       }
 
-      const { data } = supabase.storage.from("avatars").getPublicUrl(fileName);
+      const { data } = client.storage.from("avatars").getPublicUrl(fileName);
 
-      const { error: dbError } = await supabase
+      const { error: dbError } = await client
         .from("users")
         .update({ avatar_url: data.publicUrl })
         .eq("id", userId);

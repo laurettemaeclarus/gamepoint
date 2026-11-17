@@ -44,12 +44,10 @@ export class SnackSaleRepository {
       .from("snack_sales")
       .select("*, snack_products(*), users:customer_user_id(name)")
       .order("created_at", { ascending: false })
-      .limit(10000);
-    if (from) q = q.gte("created_at", new Date(`${from}T00:00:00`).toISOString());
+      .limit(100000);
+    if (from) q = q.gte("created_at", new Date(`${from}T00:00:00+08:00`).toISOString());
     if (to) {
-      const dt = new Date(`${to}T00:00:00`);
-      dt.setHours(23, 59, 59, 999);
-      q = q.lte("created_at", dt.toISOString());
+      q = q.lte("created_at", new Date(`${to}T23:59:59.999+08:00`).toISOString());
     }
     const { data } = await q;
     return data || [];

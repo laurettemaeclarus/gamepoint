@@ -28,12 +28,21 @@ export default function DashboardLayout({
   }, [pathname]);
 
   useEffect(() => {
-    const stored = localStorage.getItem("user");
-    if (stored) {
-      try {
-        setUser(JSON.parse(stored));
-      } catch {}
-    }
+    const syncUser = () => {
+      const stored = localStorage.getItem("user");
+      if (stored) {
+        try {
+          setUser(JSON.parse(stored));
+        } catch {}
+      }
+    };
+    syncUser();
+    window.addEventListener("storage", syncUser);
+    window.addEventListener("user-updated", syncUser);
+    return () => {
+      window.removeEventListener("storage", syncUser);
+      window.removeEventListener("user-updated", syncUser);
+    };
   }, []);
 
   useEffect(() => {

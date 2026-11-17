@@ -114,6 +114,9 @@ Run development server
 npm run dev
 ```
 
+### Supabase storage
+Create a public bucket named `avatars` in Supabase Storage (public read). Uploads are performed server-side with the service role key when `SUPABASE_SERVICE_ROLE_KEY` is set, so no anon upload policy is required.
+
 Build production
 
 ```bash

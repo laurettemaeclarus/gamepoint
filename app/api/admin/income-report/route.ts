@@ -2,24 +2,28 @@ import { supabase } from "@/lib/supabase";
 
 const TEST_NAMES = ["test", "test2", "test3", "test4", "test5"];
 
+const TZ = "Asia/Manila";
+
 function toISODateStart(d: string): string {
-  return new Date(`${d}T00:00:00`).toISOString();
+  return new Date(`${d}T00:00:00+08:00`).toISOString();
 }
 
 function toISODateEnd(d: string): string {
-  const dt = new Date(`${d}T00:00:00`);
-  dt.setHours(23, 59, 59, 999);
-  return dt.toISOString();
+  return new Date(`${d}T23:59:59.999+08:00`).toISOString();
+}
+
+function manilaDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-CA", { timeZone: TZ });
 }
 
 function bucketKey(iso: string, groupBy: string): string {
   const d = new Date(iso);
   if (groupBy === "day") {
-    return d.toISOString().split("T")[0];
+    return manilaDate(iso);
   }
   // month
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  return `${d.getFullYear()}-${m}`;
+  const parts = manilaDate(iso).split("-");
+  return `${parts[0]}-${parts[1]}`;
 }
 
 export async function GET(req: Request) {
@@ -49,7 +53,7 @@ export async function GET(req: Request) {
       .select("user_id, amount, balance_before, balance_after, description, created_at")
       .eq("type", "admin_load")
       .order("created_at", { ascending: false })
-      .limit(10000);
+      .limit(100000);
 
     if (from) loadQuery = loadQuery.gte("created_at", toISODateStart(from));
     if (to) loadQuery = loadQuery.lte("created_at", toISODateEnd(to));
@@ -65,7 +69,7 @@ export async function GET(req: Request) {
       .select("user_id, amount, balance_before, balance_after, description, created_at")
       .eq("type", "admin_deduct")
       .order("created_at", { ascending: false })
-      .limit(10000);
+      .limit(100000);
 
     if (from) deductQuery = deductQuery.gte("created_at", toISODateStart(from));
     if (to) deductQuery = deductQuery.lte("created_at", toISODateEnd(to));

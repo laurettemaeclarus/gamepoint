@@ -101,9 +101,10 @@ export class SnackStoreService {
 
     const bucketKey = (iso: string) => {
       const d = new Date(iso);
-      if (groupBy === "day") return d.toISOString().split("T")[0];
-      const m = String(d.getMonth() + 1).padStart(2, "0");
-      return `${d.getFullYear()}-${m}`;
+      const dateStr = d.toLocaleDateString("en-CA", { timeZone: "Asia/Manila" });
+      if (groupBy === "day") return dateStr;
+      const parts = dateStr.split("-");
+      return `${parts[0]}-${parts[1]}`;
     };
 
     const totalRevenue = sales.reduce((s, r) => s + (Number(r.total) || 0), 0);

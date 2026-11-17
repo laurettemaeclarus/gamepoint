@@ -43,12 +43,15 @@ type ReportData = {
 const GRADIENT =
   "bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-500 hover:to-purple-500";
 
+function manilaISO(d: Date = new Date()): string {
+  return d.toLocaleDateString("en-CA", { timeZone: "Asia/Manila" });
+}
 function todayISO(): string {
-  return new Date().toISOString().split("T")[0];
+  return manilaISO();
 }
 function monthStartISO(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
+  const parts = manilaISO().split("-");
+  return `${parts[0]}-${parts[1]}-01`;
 }
 
 const LAUNCH_DATE_ISO =
@@ -258,7 +261,7 @@ export default function SnackStoreAdmin() {
 
   const setPreset = (preset: "today" | "week" | "month" | "lastmonth" | "year") => {
     const now = new Date();
-    const iso = (d: Date) => d.toISOString().split("T")[0];
+    const iso = (d: Date) => manilaISO(d);
     if (preset === "today") {
       setFromDate(iso(now));
       setToDate(iso(now));

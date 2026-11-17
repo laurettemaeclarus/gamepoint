@@ -217,6 +217,47 @@ export default function Home() {
     }
   };
 
+  const changeAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const stored = JSON.parse(localStorage.getItem("user") ?? "{}");
+    if (!stored?.id) {
+      toast.error("Not logged in");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("user_id", stored.id);
+
+    try {
+      const res = await fetch("/api/update-avatar", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+
+      if (data.error) {
+        toast.error(data.error);
+        return;
+      }
+
+      setUser((prev: any) => ({ ...prev, avatar_url: data.url }));
+      try {
+        const updated = { ...stored, avatar_url: data.url };
+        localStorage.setItem("user", JSON.stringify(updated));
+        window.dispatchEvent(new Event("user-updated"));
+      } catch {}
+      toast.success("Avatar updated!");
+    } catch {
+      toast.error("Avatar update failed");
+    } finally {
+      // reset input so same file can be picked again
+      e.target.value = "";
+    }
+  };
+
   if (loading) {
     return <div className="text-white p-10">Loading...</div>;
   }
@@ -231,13 +272,16 @@ export default function Home() {
         {/* HEADER */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-700 flex items-center justify-center">
-              {user?.avatar_url ? (
-                <img src={user.avatar_url} alt="avatar" className="w-full h-full object-cover" />
-              ) : (
-                "Player"
-              )}
-            </div>
+            <label className="cursor-pointer" title="Change avatar">
+              <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-700 flex items-center justify-center">
+                {user?.avatar_url ? (
+                  <img src={user.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+                ) : (
+                  "Change Avatar"
+                )}
+              </div>
+              <input type="file" accept="image/*" hidden onChange={changeAvatar} />
+            </label>
             <div>
               <div className="text-xs text-gray-400">Player</div>
               <div className="text-lg font-semibold">{user?.name}</div>
