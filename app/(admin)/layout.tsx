@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Menu, X, Gamepad2, MessageCircle, Shield, LogOut, BarChart3 } from "lucide-react";
+import { Menu, X, Gamepad2, MessageCircle, Shield, LogOut, BarChart3, ShoppingBag } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -27,6 +27,7 @@ export default function AdminLayout({
     { label: "Dashboard", href: "/admin", icon: Shield },
     { label: "Messages", href: "/admin/chat", icon: MessageCircle },
     { label: "Reports", href: "/admin/reports", icon: BarChart3 },
+    { label: "Snack Store", href: "/admin/snack-store", icon: ShoppingBag },
   ];
 
   return (

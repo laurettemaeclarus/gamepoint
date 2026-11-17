@@ -245,6 +245,32 @@ export interface ProductPurchase {
   users?: { name: string };
 }
 
+export interface SnackProduct {
+  id: string;
+  name: string;
+  price: number;
+  image_url: string | null;
+  stock_quantity: number | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SnackSale {
+  id: string;
+  product_id: string;
+  quantity: number;
+  unit_price: number;
+  total: number;
+  payment_method: "cash" | "gfunds" | "points";
+  customer_user_id: string | null;
+  station_name: string | null;
+  sold_by: string | null;
+  created_at: string;
+  snack_products?: SnackProduct;
+  users?: { name: string };
+}
+
 export interface ActivityLogEntry {
   id: string;
   actor_id: string | null;
